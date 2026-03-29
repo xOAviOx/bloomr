@@ -35,3 +35,13 @@ exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
 
   next();
 });
+
+exports.getAllUsers = catchAsync(async (req, res, next) => {
+  const users = User.find();
+  res.status(200).json({
+    status: "success",
+    data: {
+      users,
+    },
+  });
+});
