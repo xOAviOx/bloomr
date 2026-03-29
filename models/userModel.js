@@ -42,19 +42,11 @@ const userSchema = new mongoose.Schema(
       default: true,
       select: false,
     },
-
-    following: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
-    followers: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+    bio: {
+      type: String,
+      maxLength: [200, "Bio cannot exceed 200 characters"],
+      default: "",
+    },
 
     passwordChangedAt: Date,
   },
@@ -99,21 +91,6 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   //False means not changed
   return false;
 };
-
-// Instance method: check if this user follows another
-userSchema.methods.isFollowing = function (userId) {
-  return this.following.some((id) => id.equals(userId));
-};
-
-// Virtual: follower count
-userSchema.virtual("followerCount").get(function () {
-  return this.followers.length;
-});
-
-// Virtual: following count
-userSchema.virtual("followingCount").get(function () {
-  return this.following.length;
-});
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;
