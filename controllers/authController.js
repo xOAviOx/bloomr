@@ -143,3 +143,35 @@ exports.protect = catchAsync(async (req, res, next) => {
   res.locals.user = currentUser;
   next();
 });
+
+//func only for rendered pages no errors
+exports.isLoggedIn = catchAsync(async (req, res, next) => {
+  // 1) Getting token and check if it exists
+  if (req.cookies.jwt) {
+    try {
+      // 2) Verification token
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET,
+      );
+
+      // 3) Check if user still exists
+      const currentUser = await User.findById(decoded.id);
+      if (!currentUser) {
+        return next();
+      }
+
+      // 4) Check if user changed password after the token was issued
+      if (currentUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+
+      // THERE IS A LOGGED IN USER
+      res.locals.user = currentUser; // This makes 'user' available in templates
+      return next();
+    } catch (err) {
+      return next();
+    }
+  }
+  next();
+});
