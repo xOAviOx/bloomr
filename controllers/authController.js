@@ -87,3 +87,59 @@ exports.login = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.logout = (req, res) => {
+  res.cookie("jwt", "loggedout", {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+    secure: true,
+  });
+  res.status(200).json({ status: "success" });
+};
+
+exports.protect = catchAsync(async (req, res, next) => {
+  //getting the token and check if its there
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
+  }
+
+  if (!token) {
+    return next(
+      new AppError("You are not logged in! Please log in to get access", 401),
+    );
+  }
+
+  //verification of token
+
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  //check if user still exists
+
+  const currentUser = await User.findById(decoded.id);
+  if (!currentUser) {
+    return next(
+      new AppError(
+        "The user belonging to this token does no longer exists.",
+        401,
+      ),
+    );
+  }
+
+  //check if user changed password after the token was issued
+  if (currentUser.changedPasswordAfter(decoded.iat)) {
+    return next(
+      new AppError("User recently changed password! Please login again.", 401),
+    );
+  }
+
+  //grant access to protected routes
+  req.user = currentUser;
+  res.locals.user = currentUser;
+  next();
+});
