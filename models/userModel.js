@@ -55,20 +55,20 @@ const userSchema = new mongoose.Schema(
   },
 );
 
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
   //only run this function when the password is modified
-  if (!this.isModified("password")) return next();
+  if (!this.isModified("password")) return;
+
   //hash the password
   this.password = await bcrypt.hash(this.password, 12);
 
   //delete the password confirm field
   this.passwordConfirm = undefined;
-  next();
 });
 
 //find only active users
 userSchema.pre(/^find/, function (next) {
-  this.find({ active: { $ne: false } });
+  this.where({ active: { $ne: false } });
   next();
 });
 
