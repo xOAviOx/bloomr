@@ -399,71 +399,71 @@ html(lang="en")
         a(href="/profile") Profile
         a.logout-btn(href="/logout") Logout
 
-    .container
-      .feed-header
-        h1 Your Feed
-        p See what others are sharing
+  .container
+    .feed-header
+      h1 Your Feed
+      p See what others are sharing
 
-      if posts && posts.length > 0
-        each post, index in posts
-          .post-card(style=`animation-delay: ${index * 0.1}s`)
-            .post-header
-              .avatar
-                if post.userID && post.userID.photo && post.userID.photo !== 'default.jpg'
-                  img(src=post.userID.photo alt=user.name)
-                else
-                  | #{post.userID ? post.userID.name.charAt(0).toUpperCase() : '?'}
-              .user-info
-                h3= post.userID ? post.userID.name : 'Unknown'
-                span= new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-            .post-content
+    if posts && posts.length > 0
+      each post, index in posts
+        .post-card(style=`animation-delay: ${index * 0.1}s`)
+          .post-header
+            .avatar
+              if post.userID && post.userID.photo && post.userID.photo !== 'default.jpg'
+                img(src=post.userID.photo alt=user.name)
+              else
+                | #{post.userID ? post.userID.name.charAt(0).toUpperCase() : '?'}
+            .user-info
+              h3= post.userID ? post.userID.name : 'Unknown'
+              span= new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          .post-content
               = post.content
-            .post-actions
-              button.action-btn.like-btn
-                span ♥
-                span= post.likes ? post.likes.length : 0
-              button.action-btn.comment-btn
-                span 💬
-                span Comment
-      else
-        .empty-state
-          h2 No posts yet
-          p Be the first to share something!
+          .post-actions
+            button.action-btn.like-btn
+              span ♥
+              span= post.likes ? post.likes.length : 0
+            button.action-btn.comment-btn
+              span 💬
+              span Comment
+    else
+      .empty-state
+        h2 No posts yet
+        p Be the first to share something!
 
-    .modal-overlay#createPostModal
-      .modal
-        h2 Create Post
-        form(action="/create-post" method="POST" id="createPostForm")
-          textarea(name="content" placeholder="What's on your mind?" required maxlength="500")
-          .modal-actions
-            button(type="button").modal-btn.cancel Cancel
-            button(type="submit").modal-btn.submit Post
+  .modal-overlay#createPostModal
+    .modal
+      h2 Create Post
+      form(action="/create-post" method="POST" id="createPostForm")
+        textarea(name="content" placeholder="What's on your mind?" required maxlength="500")
+        .modal-actions
+          button(type="button").modal-btn.cancel Cancel
+          button(type="submit").modal-btn.submit Post
 
-    script.
-      const modal = document.getElementById('createPostModal');
-      const openBtn = document.querySelector('.create-post-btn');
-      const cancelBtn = document.querySelector('.modal-btn.cancel');
-      const form = document.getElementById('createPostForm');
+  script.
+    const modal = document.getElementById('createPostModal');
+    const openBtn = document.querySelector('.create-post-btn');
+    const cancelBtn = document.querySelector('.modal-btn.cancel');
+    const form = document.getElementById('createPostForm');
 
-      openBtn.addEventListener('click', () => {
-        modal.classList.add('active');
-      });
+    openBtn.addEventListener('click', () => {
+      modal.classList.add('active');
+    });
 
-      cancelBtn.addEventListener('click', () => {
+    cancelBtn.addEventListener('click', () => {
+      modal.classList.remove('active');
+    });
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
         modal.classList.remove('active');
-      });
+      }
+    });
 
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.classList.remove('active');
-        }
-      });
+    // Close on escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        modal.classList.remove('active');
+      }
+    });
 
-      // Close on escape
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          modal.classList.remove('active');
-        }
-      });
-
-    button.create-post-btn +
+  button.create-post-btn(type="button") +
