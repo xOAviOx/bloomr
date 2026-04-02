@@ -106,10 +106,10 @@ app.post("/create-post", async (req, res, next) => {
       return res.redirect("/login");
     }
 
-    // Create the post
+    // Create the post - content must be an array as per schema
     const post = await Post.create({
       userID: user.id,
-      content: req.body.content,
+      content: [req.body.content],
     });
 
     // Redirect back to home with the new post

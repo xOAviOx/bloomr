@@ -225,7 +225,7 @@ html(lang="en")
               .user-info
                 h3= post.userID ? post.userID.name : 'Unknown'
                 span= new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-            .post-content= post.content
+            .post-content= Array.isArray(post.content) ? post.content.join(' ') : post.content
             .post-actions
               button.action-btn ♥ #{post.likes ? post.likes.length : 0}
               button.action-btn 💬 Comment
