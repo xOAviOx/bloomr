@@ -67,9 +67,8 @@ userSchema.pre("save", async function () {
 });
 
 //find only active users
-userSchema.pre(/^find/, function (next) {
-  this.where({ active: { $ne: false } });
-  next();
+userSchema.pre(/^find/, async function () {
+  this.find({ active: { $ne: false } });
 });
 
 userSchema.methods.correctPassword = async function (
