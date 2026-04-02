@@ -19,20 +19,13 @@ html(lang="en")
         --accent-hover: #ff4d5a;
         --border: #2a2a2a;
       }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
+      * { margin: 0; padding: 0; box-sizing: border-box; }
       body {
         font-family: 'Sora', sans-serif;
         background: var(--bg-primary);
         min-height: 100vh;
         color: var(--text-primary);
       }
-
       .background {
         position: fixed;
         top: 0;
@@ -40,26 +33,9 @@ html(lang="en")
         width: 100%;
         height: 100%;
         z-index: 0;
-        overflow: hidden;
-      }
-
-      .background::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
         background: radial-gradient(ellipse at 20% 20%, rgba(230, 57, 70, 0.06) 0%, transparent 50%),
                     radial-gradient(ellipse at 80% 80%, rgba(230, 57, 70, 0.04) 0%, transparent 50%);
-        animation: drift 20s ease-in-out infinite;
       }
-
-      @keyframes drift {
-        0%, 100% { transform: translate(0, 0) rotate(0deg); }
-        50% { transform: translate(2%, 2%) rotate(1deg); }
-      }
-
       .header {
         position: fixed;
         top: 0;
@@ -74,24 +50,16 @@ html(lang="en")
         justify-content: space-between;
         align-items: center;
       }
-
       .logo {
         font-family: 'Space Grotesk', sans-serif;
         font-size: 24px;
         font-weight: 700;
-        letter-spacing: -0.5px;
         background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
       }
-
-      .nav {
-        display: flex;
-        gap: 24px;
-        align-items: center;
-      }
-
+      .nav { display: flex; gap: 24px; align-items: center; }
       .nav a {
         color: var(--text-secondary);
         text-decoration: none;
@@ -99,15 +67,7 @@ html(lang="en")
         font-weight: 500;
         transition: color 0.3s ease;
       }
-
-      .nav a:hover {
-        color: var(--text-primary);
-      }
-
-      .nav a.active {
-        color: var(--accent);
-      }
-
+      .nav a:hover, .nav a.active { color: var(--accent); }
       .logout-btn {
         padding: 8px 16px;
         background: var(--bg-tertiary);
@@ -118,13 +78,7 @@ html(lang="en")
         font-size: 13px;
         transition: all 0.3s ease;
       }
-
-      .logout-btn:hover {
-        background: var(--accent);
-        border-color: var(--accent);
-        color: white;
-      }
-
+      .logout-btn:hover { background: var(--accent); border-color: var(--accent); color: white; }
       .container {
         position: relative;
         z-index: 1;
@@ -132,44 +86,17 @@ html(lang="en")
         margin: 0 auto;
         padding: 100px 20px 40px;
       }
-
-      .feed-header {
-        margin-bottom: 32px;
-      }
-
-      .feed-header h1 {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 28px;
-        font-weight: 600;
-        margin-bottom: 8px;
-      }
-
-      .feed-header p {
-        color: var(--text-secondary);
-        font-size: 14px;
-      }
-
+      .feed-header { margin-bottom: 32px; }
+      .feed-header h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600; margin-bottom: 8px; }
+      .feed-header p { color: var(--text-secondary); font-size: 14px; }
       .post-card {
         background: var(--bg-secondary);
         border: 1px solid var(--border);
         border-radius: 16px;
         padding: 24px;
         margin-bottom: 20px;
-        animation: fadeIn 0.5s ease;
       }
-
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
-      .post-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 16px;
-      }
-
+      .post-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
       .avatar {
         width: 44px;
         height: 44px;
@@ -181,47 +108,16 @@ html(lang="en")
         font-weight: 600;
         font-size: 16px;
         color: var(--accent);
-        overflow: hidden;
       }
-
-      .avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-
-      .user-info h3 {
-        font-size: 15px;
-        font-weight: 600;
-        margin-bottom: 2px;
-      }
-
-      .user-info span {
-        font-size: 12px;
-        color: var(--text-muted);
-      }
-
-      .post-content {
-        font-size: 15px;
-        line-height: 1.6;
-        color: var(--text-primary);
-        margin-bottom: 16px;
-      }
-
-      .post-image {
-        width: 100%;
-        border-radius: 12px;
-        margin-bottom: 16px;
-        display: none;
-      }
-
+      .user-info h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+      .user-info span { font-size: 12px; color: var(--text-muted); }
+      .post-content { font-size: 15px; line-height: 1.6; color: var(--text-primary); margin-bottom: 16px; }
       .post-actions {
         display: flex;
         gap: 24px;
         padding-top: 16px;
         border-top: 1px solid var(--border);
       }
-
       .action-btn {
         display: flex;
         align-items: center;
@@ -234,28 +130,9 @@ html(lang="en")
         cursor: pointer;
         transition: color 0.3s ease;
       }
-
-      .action-btn:hover {
-        color: var(--accent);
-      }
-
-      .action-btn.liked {
-        color: var(--accent);
-      }
-
-      .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: var(--text-secondary);
-      }
-
-      .empty-state h2 {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 20px;
-        margin-bottom: 8px;
-        color: var(--text-primary);
-      }
-
+      .action-btn:hover, .action-btn.liked { color: var(--accent); }
+      .empty-state { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+      .empty-state h2 { font-family: 'Space Grotesk', sans-serif; font-size: 20px; margin-bottom: 8px; color: var(--text-primary); }
       .create-post-btn {
         position: fixed;
         bottom: 24px;
@@ -266,18 +143,17 @@ html(lang="en")
         background: var(--accent);
         border: none;
         color: white;
-        font-size: 24px;
+        font-size: 28px;
         cursor: pointer;
         box-shadow: 0 4px 20px rgba(230, 57, 70, 0.4);
         transition: all 0.3s ease;
         z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
       }
-
-      .create-post-btn:hover {
-        background: var(--accent-hover);
-        transform: scale(1.1);
-      }
-
+      .create-post-btn:hover { background: var(--accent-hover); transform: scale(1.1); }
       .modal-overlay {
         display: none;
         position: fixed;
@@ -287,14 +163,8 @@ html(lang="en")
         height: 100%;
         background: rgba(0, 0, 0, 0.8);
         z-index: 200;
-        align-items: center;
-        justify-content: center;
       }
-
-      .modal-overlay.active {
-        display: flex;
-      }
-
+      .modal-overlay.active { display: flex; align-items: center; justify-content: center; }
       .modal {
         background: var(--bg-secondary);
         border: 1px solid var(--border);
@@ -303,20 +173,8 @@ html(lang="en")
         width: 100%;
         max-width: 500px;
         margin: 20px;
-        animation: slideUp 0.3s ease;
       }
-
-      @keyframes slideUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
-      .modal h2 {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 20px;
-        margin-bottom: 24px;
-      }
-
+      .modal h2 { font-family: 'Space Grotesk', sans-serif; font-size: 20px; margin-bottom: 24px; }
       .modal textarea {
         width: 100%;
         height: 120px;
@@ -331,21 +189,9 @@ html(lang="en")
         outline: none;
         margin-bottom: 16px;
       }
-
-      .modal textarea:focus {
-        border-color: var(--accent);
-      }
-
-      .modal textarea::placeholder {
-        color: var(--text-muted);
-      }
-
-      .modal-actions {
-        display: flex;
-        gap: 12px;
-        justify-content: flex-end;
-      }
-
+      .modal textarea:focus { border-color: var(--accent); }
+      .modal textarea::placeholder { color: var(--text-muted); }
+      .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
       .modal-btn {
         padding: 12px 24px;
         border-radius: 10px;
@@ -355,41 +201,10 @@ html(lang="en")
         cursor: pointer;
         transition: all 0.3s ease;
       }
-
-      .modal-btn.cancel {
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border);
-        color: var(--text-secondary);
-      }
-
-      .modal-btn.cancel:hover {
-        background: var(--border);
-      }
-
-      .modal-btn.submit {
-        background: var(--accent);
-        border: none;
-        color: white;
-      }
-
-      .modal-btn.submit:hover {
-        background: var(--accent-hover);
-      }
-
-      .modal-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      @media (max-width: 480px) {
-        .container {
-          padding: 80px 16px 40px;
-        }
-
-        .post-card {
-          padding: 16px;
-        }
-      }
+      .modal-btn.cancel { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-secondary); }
+      .modal-btn.cancel:hover { background: var(--border); }
+      .modal-btn.submit { background: var(--accent); border: none; color: white; }
+      .modal-btn.submit:hover { background: var(--accent-hover); }
   body
     .background
     .header
@@ -398,72 +213,32 @@ html(lang="en")
         a(href="/home" class="active") Home
         a(href="/profile") Profile
         a.logout-btn(href="/logout") Logout
-
-  .container
-    .feed-header
-      h1 Your Feed
-      p See what others are sharing
-
-    if posts && posts.length > 0
-      each post, index in posts
-        .post-card(style=`animation-delay: ${index * 0.1}s`)
-          .post-header
-            .avatar
-              if post.userID && post.userID.photo && post.userID.photo !== 'default.jpg'
-                img(src=post.userID.photo alt=user.name)
-              else
-                | #{post.userID ? post.userID.name.charAt(0).toUpperCase() : '?'}
-            .user-info
-              h3= post.userID ? post.userID.name : 'Unknown'
-              span= new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-          .post-content
-              = post.content
-          .post-actions
-            button.action-btn.like-btn
-              span ♥
-              span= post.likes ? post.likes.length : 0
-            button.action-btn.comment-btn
-              span 💬
-              span Comment
-    else
-      .empty-state
-        h2 No posts yet
-        p Be the first to share something!
-
-  .modal-overlay#createPostModal
-    .modal
-      h2 Create Post
-      form(action="/create-post" method="POST" id="createPostForm")
-        textarea(name="content" placeholder="What's on your mind?" required maxlength="500")
-        .modal-actions
-          button(type="button").modal-btn.cancel Cancel
-          button(type="submit").modal-btn.submit Post
-
-  script.
-    const modal = document.getElementById('createPostModal');
-    const openBtn = document.querySelector('.create-post-btn');
-    const cancelBtn = document.querySelector('.modal-btn.cancel');
-    const form = document.getElementById('createPostForm');
-
-    openBtn.addEventListener('click', () => {
-      modal.classList.add('active');
-    });
-
-    cancelBtn.addEventListener('click', () => {
-      modal.classList.remove('active');
-    });
-
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        modal.classList.remove('active');
-      }
-    });
-
-    // Close on escape
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        modal.classList.remove('active');
-      }
-    });
-
-  button.create-post-btn(type="button") +
+    .container
+      .feed-header
+        h1 Your Feed
+        p See what others are sharing
+      if posts && posts.length > 0
+        each post in posts
+          .post-card
+            .post-header
+              .avatar= post.userID ? post.userID.name.charAt(0).toUpperCase() : '?'
+              .user-info
+                h3= post.userID ? post.userID.name : 'Unknown'
+                span= new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            .post-content= post.content
+            .post-actions
+              button.action-btn ♥ #{post.likes ? post.likes.length : 0}
+              button.action-btn 💬 Comment
+      else
+        .empty-state
+          h2 No posts yet
+          p Be the first to share something!
+    .modal-overlay#createPostModal
+      .modal
+        h2 Create Post
+        form(action="/create-post" method="POST")
+          textarea(name="content" placeholder="What's on your mind?" required maxlength="500")
+          .modal-actions
+            button(type="button" onclick="document.getElementById('createPostModal').classList.remove('active')").modal-btn.cancel Cancel
+            button(type="submit").modal-btn.submit Post
+    button.create-post-btn(type="button" onclick="document.getElementById('createPostModal').classList.add('active')") +
