@@ -22,7 +22,7 @@ const handleAuthResponse = (req, res, next) => {
   const originalJson = res.json.bind(res);
   res.json = function (data) {
     if (data.status === "success") {
-      return res.redirect("/dashboard");
+      return res.redirect("/home");
     }
     // Handle error - render page with error message
     const route = req.originalUrl.includes("signup") ? "signup" : "login";
@@ -55,29 +55,33 @@ app.get("/", (req, res) => {
   res.redirect("/login");
 });
 
-// Dashboard route (protected)
-app.get("/dashboard", async (req, res, next) => {
-  const authController = require("./controllers/authController");
-
-  // Run the isLoggedIn check manually for rendered pages
+// Home route (protected) - shows all posts/feed
+app.get("/home", async (req, res, next) => {
   if (req.cookies.jwt) {
     try {
       const jwt = require("jsonwebtoken");
       const { promisify } = require("util");
       const decoded = await promisify(jwt.verify)(req.cookies.jwt, process.env.JWT_SECRET);
       const User = require("./models/userModel");
+      const Post = require("./models/postModel");
+
       const user = await User.findById(decoded.id);
 
       if (user) {
+        // Fetch all posts, newest first, populate user info
+        const posts = await Post.find()
+          .sort({ createdAt: -1 })
+          .populate("userID", "name photo")
+          .limit(50);
+
         res.locals.user = user;
-        return res.render("dashboard");
+        return res.render("home", { posts });
       }
     } catch (err) {
       // Token invalid or expired
     }
   }
 
-  // Not logged in, redirect to login
   res.redirect("/login");
 });
 
