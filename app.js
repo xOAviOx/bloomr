@@ -139,16 +139,21 @@ app.get("/home", protect, async (req, res, next) => {
 
 // Create post handler (for form submission from UI)
 app.post("/create-post", protect, async (req, res, next) => {
-  const Post = require("./models/postModel");
+  try {
+    const Post = require("./models/postModel");
 
-  // Create the post - content must be an array as per schema
-  const post = await Post.create({
-    userID: res.locals.user.id,
-    content: [req.body.content],
-  });
+    // Create the post - content must be an array as per schema
+    const post = await Post.create({
+      userID: res.locals.user.id,
+      content: [req.body.content],
+    });
 
-  // Redirect back to home with the new post
-  res.redirect("/home");
+    // Redirect back to home with the new post
+    res.redirect("/home");
+  } catch (err) {
+    console.error("Create post error:", err);
+    res.redirect("/home");
+  }
 });
 
 // Logout route

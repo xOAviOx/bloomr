@@ -236,9 +236,9 @@ html(lang="en")
     .modal-overlay#createPostModal
       .modal
         h2 Create Post
-        form(action="/create-post" method="POST" id="postForm")
+        form(action="/create-post" method="POST")
           textarea(name="content" placeholder="What's on your mind?" required maxlength="500")
           .modal-actions
             button(type="button" onclick="document.getElementById('createPostModal').classList.remove('active')").modal-btn.cancel Cancel
-            button(type="button" onclick="document.getElementById('postForm').submit()").modal-btn.submit Post
+            button(type="submit").modal-btn.submit Post
     button.create-post-btn(type="button" onclick="document.getElementById('createPostModal').classList.add('active')") +
