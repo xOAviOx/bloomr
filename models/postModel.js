@@ -40,19 +40,19 @@ const postSchema = new mongoose.Schema(
 );
 
 // Auto-generate embedding whenever post content is created or changed
-postSchema.pre("save", async function (next) {
-  if (!this.isModified("content")) return next();
+postSchema.pre("save", async function () {
+  if (!this.isModified("content")) return;
 
   try {
     const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
-    const result = await model.embedContent(this.content);
+    // Join array content into a single string for embedding
+    const contentText = this.content.join(" ");
+    const result = await model.embedContent(contentText);
     this.embedding = result.embedding.values; // 768 dimensions
   } catch (err) {
     // Embedding failure should not block the post from saving
     console.error("Embedding generation failed:", err.message);
   }
-
-  next();
 });
 
 // Instance method: check if a user has liked this post
