@@ -33,8 +33,49 @@ const handleAuthResponse = (req, res, next) => {
   next();
 };
 
-// View routes - Signup
-app.get("/signup", (req, res) => {
+// Authentication middleware
+const protect = async (req, res, next) => {
+  if (!req.cookies.jwt) {
+    return res.redirect("/login");
+  }
+
+  try {
+    const jwt = require("jsonwebtoken");
+    const { promisify } = require("util");
+    const decoded = await promisify(jwt.verify)(
+      req.cookies.jwt,
+      process.env.JWT_SECRET,
+    );
+
+    const User = require("./models/userModel");
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.redirect("/login");
+    }
+
+    res.locals.user = user;
+    next();
+  } catch (err) {
+    return res.redirect("/login");
+  }
+};
+
+// View routes - Signup (protected - redirect if already logged in)
+app.get("/signup", async (req, res) => {
+  if (req.cookies.jwt) {
+    try {
+      const jwt = require("jsonwebtoken");
+      const { promisify } = require("util");
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET,
+      );
+      const User = require("./models/userModel");
+      const user = await User.findById(decoded.id);
+      if (user) return res.redirect("/home");
+    } catch (e) {}
+  }
   res.render("signup", { error: null });
 });
 
@@ -43,8 +84,21 @@ app.post("/signup", handleAuthResponse, (req, res, next) => {
   authController.signUp(req, res, next);
 });
 
-// View routes - Login
-app.get("/login", (req, res) => {
+// View routes - Login (redirect if already logged in)
+app.get("/login", async (req, res) => {
+  if (req.cookies.jwt) {
+    try {
+      const jwt = require("jsonwebtoken");
+      const { promisify } = require("util");
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET,
+      );
+      const User = require("./models/userModel");
+      const user = await User.findById(decoded.id);
+      if (user) return res.redirect("/home");
+    } catch (e) {}
+  }
   res.render("login", { error: null });
 });
 
@@ -53,70 +107,48 @@ app.post("/login", handleAuthResponse, (req, res, next) => {
   authController.login(req, res, next);
 });
 
-app.get("/", (req, res) => {
-  res.redirect("/login");
-});
-
-// Home route (protected) - shows all posts/feed
-app.get("/home", async (req, res, next) => {
+app.get("/", async (req, res) => {
   if (req.cookies.jwt) {
     try {
       const jwt = require("jsonwebtoken");
       const { promisify } = require("util");
-      const decoded = await promisify(jwt.verify)(req.cookies.jwt, process.env.JWT_SECRET);
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET,
+      );
       const User = require("./models/userModel");
-      const Post = require("./models/postModel");
-
       const user = await User.findById(decoded.id);
-
-      if (user) {
-        // Fetch all posts, newest first, populate user info
-        const posts = await Post.find()
-          .sort({ createdAt: -1 })
-          .populate("userID", "name photo")
-          .limit(50);
-
-        res.locals.user = user;
-        return res.render("home", { posts, error: null });
-      }
-    } catch (err) {
-      // Token invalid or expired
-    }
+      if (user) return res.redirect("/home");
+    } catch (e) {}
   }
-
   res.redirect("/login");
 });
 
+// Home route (protected) - shows all posts/feed
+app.get("/home", protect, async (req, res, next) => {
+  const Post = require("./models/postModel");
+
+  // Fetch all posts, newest first, populate user info
+  const posts = await Post.find()
+    .sort({ createdAt: -1 })
+    .populate("userID", "name photo")
+    .limit(50);
+
+  res.render("home", { posts, error: null });
+});
+
 // Create post handler (for form submission from UI)
-app.post("/create-post", async (req, res, next) => {
-  if (!req.cookies.jwt) {
-    return res.redirect("/login");
-  }
+app.post("/create-post", protect, async (req, res, next) => {
+  const Post = require("./models/postModel");
 
-  try {
-    const jwt = require("jsonwebtoken");
-    const { promisify } = require("util");
-    const decoded = await promisify(jwt.verify)(req.cookies.jwt, process.env.JWT_SECRET);
-    const User = require("./models/userModel");
-    const Post = require("./models/postModel");
+  // Create the post - content must be an array as per schema
+  const post = await Post.create({
+    userID: res.locals.user.id,
+    content: [req.body.content],
+  });
 
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res.redirect("/login");
-    }
-
-    // Create the post - content must be an array as per schema
-    const post = await Post.create({
-      userID: user.id,
-      content: [req.body.content],
-    });
-
-    // Redirect back to home with the new post
-    res.redirect("/home");
-  } catch (err) {
-    res.redirect("/home");
-  }
+  // Redirect back to home with the new post
+  res.redirect("/home");
 });
 
 // Logout route
