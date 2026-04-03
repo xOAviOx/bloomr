@@ -26,6 +26,25 @@ const postSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    comments: [
+      {
+        userID: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        content: {
+          type: String,
+          required: true,
+          maxlength: 300,
+          trim: true,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
     // Vector embedding of content — used by Atlas Vector Search for RAG chatbot
     // 768 dimensions for Gemini text-embedding-004
     embedding: {
