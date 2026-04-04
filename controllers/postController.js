@@ -53,7 +53,7 @@ exports.getAllPosts = catchAsync(async (req, res, next) => {
   });
 });
 
-// Create a new post
+// Create a new post ///
 exports.createPost = catchAsync(async (req, res, next) => {
   // Get user from the protect middleware
   if (!req.user) {
