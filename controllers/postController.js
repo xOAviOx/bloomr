@@ -65,7 +65,7 @@ exports.createPost = catchAsync(async (req, res, next) => {
     content: req.body.content,
   };
 
-  // Add image if uploaded
+  // Add image if uploaded///
   if (req.file) {
     postData.imageUrl = `/img/posts/${req.file.filename}`;
   }
