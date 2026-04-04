@@ -37,7 +37,7 @@ exports.resizePostImage = catchAsync(async (req, res, next) => {
   next();
 });
 
-// Get all posts (for feed)
+// Get all posts (for feed)///
 exports.getAllPosts = catchAsync(async (req, res, next) => {
   const posts = await Post.find()
     .sort({ createdAt: -1 })
