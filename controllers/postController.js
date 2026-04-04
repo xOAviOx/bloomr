@@ -95,7 +95,7 @@ exports.getMyPosts = catchAsync(async (req, res, next) => {
   });
 });
 
-// Delete a post (only by owner)
+// Delete a post (only by owner)///
 exports.deletePost = catchAsync(async (req, res, next) => {
   const post = await Post.findById(req.params.id);
 
