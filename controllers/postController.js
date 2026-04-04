@@ -5,7 +5,7 @@ const Post = require("./../models/postModel");
 const multer = require("multer");
 const sharp = require("sharp");
 
-// Multer config for image upload
+// Multer config for image upload////
 const multerStorage = multer.memoryStorage();
 
 const multerFilter = (req, file, cb) => {
