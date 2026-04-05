@@ -12,13 +12,13 @@ async function embedText(text) {
 
 // Retrieve top-k relevant posts using Atlas Vector Search
 async function retrieveRelevantPosts(queryEmbedding, topK = 5) {
-  return await Post.aggregate([
+  const docs = await Post.aggregate([
     {
       $vectorSearch: {
         index: "post_embeddings",
         path: "embedding",
         queryVector: queryEmbedding,
-        numCandidates: 20,
+        numCandidates: 100,
         limit: topK,
       },
     },
@@ -30,7 +30,6 @@ async function retrieveRelevantPosts(queryEmbedding, topK = 5) {
         score: { $meta: "vectorSearchScore" },
       },
     },
-    // Lookup post author
     {
       $lookup: {
         from: "users",
@@ -51,50 +50,86 @@ async function retrieveRelevantPosts(queryEmbedding, topK = 5) {
         comments: 1,
       },
     },
-    // Unwind comments array to process each comment
-    { $unwind: { path: "$comments", preserveNullAndEmptyArrays: false } },
-    // Lookup comment author
     {
-      $lookup: {
-        from: "users",
-        localField: "comments.userID",
-        foreignField: "_id",
-        as: "commentAuthor",
-      },
-    },
-    {
-      $unwind: { path: "$commentAuthor", preserveNullAndEmptyArrays: true },
-    },
-    {
-      $project: {
-        content: 1,
-        userName: 1,
-        createdAt: 1,
-        score: 1,
-        "comments.content": 1,
-        "comments.createdAt": 1,
-        commentAuthorName: "$commentAuthor.name",
-      },
-    },
-    // Regroup comments back into array
-    {
-      $group: {
-        _id: "$_id",
-        content: { $first: "$content" },
-        userName: { $first: "$userName" },
-        createdAt: { $first: "$createdAt" },
-        score: { $first: "$score" },
-        comments: {
-          $push: {
-            content: "$comments.content",
-            createdAt: "$comments.createdAt",
-            authorName: "$commentAuthorName",
+      $facet: {
+        withComments: [
+          {
+            $match: {
+              comments: { $exists: true, $ne: null },
+              "comments.0": { $exists: true },
+            },
           },
-        },
+          { $unwind: "$comments" },
+          {
+            $lookup: {
+              from: "users",
+              localField: "comments.userID",
+              foreignField: "_id",
+              as: "commentAuthor",
+            },
+          },
+          {
+            $unwind: {
+              path: "$commentAuthor",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $project: {
+              content: 1,
+              userName: 1,
+              createdAt: 1,
+              score: 1,
+              "comments.content": 1,
+              "comments.createdAt": 1,
+              commentAuthorName: "$commentAuthor.name",
+            },
+          },
+          {
+            $group: {
+              _id: "$_id",
+              content: { $first: "$content" },
+              userName: { $first: "$userName" },
+              createdAt: { $first: "$createdAt" },
+              score: { $first: "$score" },
+              comments: {
+                $push: {
+                  content: "$comments.content",
+                  createdAt: "$comments.createdAt",
+                  authorName: "$commentAuthorName",
+                },
+              },
+            },
+          },
+        ],
+        withoutComments: [
+          {
+            $match: {
+              $or: [
+                { comments: { $exists: false } },
+                { comments: { $size: 0 } },
+                { comments: { $eq: null } },
+              ],
+            },
+          },
+          {
+            $project: {
+              content: 1,
+              userName: 1,
+              createdAt: 1,
+              score: 1,
+              comments: { $literal: [] },
+            },
+          },
+        ],
       },
     },
-    { $sort: { score: -1 } },
   ]);
+
+  const withComments = docs[0].withComments || [];
+  const withoutComments = docs[0].withoutComments || [];
+
+  return [...withComments, ...withoutComments].sort((a, b) => b.score - a.score);
 }
 
 // Build a context string from retrieved posts and their comments
@@ -137,7 +172,7 @@ exports.chatbot = async (req, res, next) => {
     const context = buildContext(relevantPosts);
 
     // 4. Generate answer using Gemini
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "models/gemini-2.5-flash" });
     const prompt = `
 You are a helpful assistant for a social media app called Bloomr.
 Use the context below (posts + comments from the platform) to answer the user's question.
