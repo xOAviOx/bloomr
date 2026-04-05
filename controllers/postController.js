@@ -115,3 +115,91 @@ exports.deletePost = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
+
+// Like a post (toggle)///
+exports.likePost = catchAsync(async (req, res, next) => {
+  const post = await Post.findById(req.params.id);
+
+  if (!post) {
+    return next(new AppError("No post found with that ID", 404));
+  }
+
+  const userId = req.user.id;
+
+  // Toggle like: remove if already liked, add if not
+  const likeIndex = post.likes.indexOf(userId);
+  if (likeIndex > -1) {
+    post.likes.splice(likeIndex, 1);
+  } else {
+    post.likes.push(userId);
+  }
+
+  await post.save();
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      likes: post.likes,
+      likeCount: post.likes.length,
+      isLiked: likeIndex === -1, // true if just liked, false if just unliked
+    },
+  });
+});
+
+// Add a comment to a post///
+exports.addComment = catchAsync(async (req, res, next) => {
+  const post = await Post.findById(req.params.id);
+
+  if (!post) {
+    return next(new AppError("No post found with that ID", 404));
+  }
+
+  const comment = {
+    userID: req.user.id,
+    content: req.body.content,
+  };
+
+  post.comments.push(comment);
+  await post.save();
+
+  // Populate the new comment's user info
+  const populatedPost = await Post.findById(req.params.id)
+    .populate("comments.userID", "name photo");
+
+  const newComment = populatedPost.comments[populatedPost.comments.length - 1];
+
+  res.status(201).json({
+    status: "success",
+    data: {
+      comment: newComment,
+    },
+  });
+});
+
+// Delete a comment (only by comment owner)///
+exports.deleteComment = catchAsync(async (req, res, next) => {
+  const post = await Post.findById(req.params.postId);
+
+  if (!post) {
+    return next(new AppError("No post found with that ID", 404));
+  }
+
+  const comment = post.comments.id(req.params.commentId);
+
+  if (!comment) {
+    return next(new AppError("No comment found with that ID", 404));
+  }
+
+  // Check if user owns the comment
+  if (comment.userID.toString() !== req.user.id) {
+    return next(new AppError("You can only delete your own comments", 403));
+  }
+
+  comment.deleteOne();
+  await post.save();
+
+  res.status(204).json({
+    status: "success",
+    data: null,
+  });
+});

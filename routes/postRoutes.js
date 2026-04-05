@@ -20,4 +20,17 @@ router.get("/my-posts", authController.protect, postController.getMyPosts);
 // Delete a post (owner only)
 router.delete("/:id", authController.protect, postController.deletePost);
 
+// Like/unlike a post (login required)
+router.post("/:id/like", authController.protect, postController.likePost);
+
+// Add a comment (login required)
+router.post("/:id/comment", authController.protect, postController.addComment);
+
+// Delete a comment (comment owner only)
+router.delete(
+  "/:postId/comment/:commentId",
+  authController.protect,
+  postController.deleteComment,
+);
+
 module.exports = router;
