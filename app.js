@@ -262,6 +262,68 @@ app.post("/create-post", protect, async (req, res, next) => {
   }
 });
 
+// Profile route (protected)
+app.get("/profile", protect, async (req, res) => {
+  res.render("profile", { error: null, success: null });
+});
+
+// Update profile handler
+app.post("/profile/update", protect, async (req, res) => {
+  try {
+    const User = require("./models/userModel");
+    const updates = {};
+
+    if (req.body.name) updates.name = req.body.name;
+    if (req.body.email) updates.email = req.body.email;
+    if (req.body.bio !== undefined) updates.bio = req.body.bio;
+    if (req.body.photo) updates.photo = req.body.photo;
+
+    await User.findByIdAndUpdate(res.locals.user._id, updates, { new: true, runValidators: true });
+
+    res.locals.user = await User.findById(res.locals.user._id);
+    res.render("profile", { error: null, success: "Profile updated successfully!" });
+  } catch (err) {
+    res.render("profile", { error: err.message, success: null });
+  }
+});
+
+// Change password handler
+app.post("/profile/password", protect, async (req, res) => {
+  try {
+    const User = require("./models/userModel");
+    const user = await User.findById(res.locals.user._id).select("+password");
+
+    if (!(await user.correctPassword(req.body.currentPassword, user.password))) {
+      return res.render("profile", { error: "Current password is incorrect", success: null });
+    }
+
+    if (req.body.newPassword !== req.body.confirmPassword) {
+      return res.render("profile", { error: "New passwords do not match", success: null });
+    }
+
+    user.password = req.body.newPassword;
+    user.passwordConfirm = req.body.confirmPassword;
+    user.passwordChangedAt = Date.now();
+    await user.save();
+
+    res.render("profile", { error: null, success: "Password updated successfully!" });
+  } catch (err) {
+    res.render("profile", { error: err.message, success: null });
+  }
+});
+
+// Delete account handler
+app.post("/profile/delete", protect, async (req, res) => {
+  try {
+    const User = require("./models/userModel");
+    await User.findByIdAndDelete(res.locals.user._id);
+    res.cookie("jwt", "", { expires: new Date(0) });
+    res.redirect("/signup");
+  } catch (err) {
+    res.render("profile", { error: err.message, success: null });
+  }
+});
+
 // Logout route
 app.get("/logout", (req, res, next) => {
   const authController = require("./controllers/authController");
