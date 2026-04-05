@@ -4,6 +4,7 @@ const multer = require("multer");
 const path = require("path");
 const userRouter = require("./routes/userRoutes");
 const postRouter = require("./routes/postRoutes");
+const chatbotRouter = require("./routes/chatbotRoutes");
 const AppError = require("./utils/appError");
 
 const app = express();
@@ -44,6 +45,7 @@ const upload = multer({
 
 app.use("/api/v1/users/", userRouter);
 app.use("/api/v1/posts/", postRouter);
+app.use("/api/v1/chatbot/", chatbotRouter);
 
 // Middleware to handle form auth responses
 const handleAuthResponse = (req, res, next) => {

@@ -63,7 +63,7 @@ postSchema.pre("save", async function () {
   if (!this.isModified("content")) return;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
+    const model = genAI.getGenerativeModel({ model: "models/gemini-embedding-001" });
     // Join array content into a single string for embedding
     const contentText = this.content.join(" ");
     const result = await model.embedContent(contentText);

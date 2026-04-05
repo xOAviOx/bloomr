@@ -205,6 +205,38 @@ html(lang="en")
       .modal-btn.cancel:hover { background: var(--border); }
       .modal-btn.submit { background: var(--accent); border: none; color: white; }
       .modal-btn.submit:hover { background: var(--accent-hover); }
+      .comment-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+      .comment-form { display: flex; gap: 12px; }
+      .comment-form input {
+        flex: 1;
+        padding: 10px 14px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-family: 'Sora', sans-serif;
+        font-size: 13px;
+        outline: none;
+      }
+      .comment-form input:focus { border-color: var(--accent); }
+      .comment-form button {
+        padding: 10px 16px;
+        background: var(--accent);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-family: 'Sora', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .comment-form button:hover { background: var(--accent-hover); }
+      .comment-list { margin-top: 12px; }
+      .comment-item { display: flex; gap: 10px; margin-bottom: 10px; }
+      .comment-item .avatar { width: 32px; height: 32px; font-size: 12px; }
+      .comment-item .comment-body { flex: 1; }
+      .comment-item .comment-user { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+      .comment-item .comment-text { font-size: 13px; color: var(--text-secondary); }
   body
     .background
     .header
@@ -228,8 +260,19 @@ html(lang="en")
                 span= new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
             .post-content= Array.isArray(post.content) ? post.content.join(' ') : post.content
             .post-actions
-              button.action-btn ♥ #{post.likes ? post.likes.length : 0}
-              button.action-btn 💬 Comment
+              button.action-btn.like-btn(data-post-id=post._id) ♥ #{post.likes ? post.likes.length : 0}
+              button.action-btn.comment-toggle(data-post-id=post._id) 💬 #{post.comments ? post.comments.length : 0}
+            .comment-section(id=`comment-section-${post._id}` style="display: none;")
+              .comment-form
+                input(type="text" placeholder="Write a comment..." class="comment-input" data-post-id=post._id)
+                button.comment-submit(data-post-id=post._id) Post
+              .comment-list
+                each comment in (post.comments || [])
+                  .comment-item
+                    .avatar= comment.userID ? (comment.userID.name ? comment.userID.name.charAt(0).toUpperCase() : '?') : '?'
+                    .comment-body
+                      .comment-user= comment.userID ? (comment.userID.name || 'Unknown') : 'Unknown'
+                      .comment-text= comment.content
       else
         .empty-state
           h2 No posts yet
@@ -243,3 +286,80 @@ html(lang="en")
             button(type="button" onclick="document.getElementById('createPostModal').classList.remove('active')").modal-btn.cancel Cancel
             button(type="submit").modal-btn.submit Post
     button.create-post-btn(type="button" onclick="document.getElementById('createPostModal').classList.add('active')") +
+    script.
+      // Like button handler
+      document.querySelectorAll('.like-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const postId = btn.dataset.postId;
+          try {
+            const res = await fetch(`/api/v1/posts/${postId}/like`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+              btn.textContent = `♥ ${data.data.likeCount}`;
+              if (data.data.isLiked) {
+                btn.classList.add('liked');
+              } else {
+                btn.classList.remove('liked');
+              }
+            }
+          } catch (err) {
+            console.error('Like failed:', err);
+          }
+        });
+      });
+
+      // Comment toggle handler
+      document.querySelectorAll('.comment-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const postId = btn.dataset.postId;
+          const section = document.getElementById(`comment-section-${postId}`);
+          section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        });
+      });
+
+      // Comment submit handler
+      document.querySelectorAll('.comment-submit').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const postId = btn.dataset.postId;
+          const input = document.querySelector(`.comment-input[data-post-id="${postId}"]`);
+          const content = input.value.trim();
+          if (!content) return;
+          try {
+            const res = await fetch(`/api/v1/posts/${postId}/comment`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ content })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+              input.value = '';
+              const commentList = document.querySelector(`#comment-section-${postId} .comment-list`);
+              const newComment = document.createElement('div');
+              newComment.className = 'comment-item';
+              newComment.innerHTML = `
+                <div class="avatar">${data.data.comment.userID ? data.data.comment.userID.name.charAt(0).toUpperCase() : '?'}</div>
+                <div class="comment-body">
+                  <div class="comment-user">${data.data.comment.userID ? data.data.comment.userID.name : 'Unknown'}</div>
+                  <div class="comment-text">${data.data.comment.content}</div>
+                </div>
+              `;
+              commentList.appendChild(newComment);
+            }
+          } catch (err) {
+            console.error('Comment failed:', err);
+          }
+        });
+      });
+
+      // Enter key for comment input
+      document.querySelectorAll('.comment-input').forEach(input => {
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            const postId = input.dataset.postId;
+            document.querySelector(`.comment-submit[data-post-id="${postId}"]`).click();
+          }
+        });
+      });

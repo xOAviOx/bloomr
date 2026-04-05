@@ -82,7 +82,7 @@ exports.createPost = catchAsync(async (req, res, next) => {
 
 // Get current user's posts
 exports.getMyPosts = catchAsync(async (req, res, next) => {
-  const posts = await Post.find({ userID: req.user.id })
+  const posts = await Post.find({ userID: req.user._id })
     .sort({ createdAt: -1 })
     .populate("userID", "name photo");
 
