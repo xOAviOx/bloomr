@@ -197,7 +197,7 @@ html(lang="en")
         .message.error= error
       .section
         h2 Personal Information
-        form(action="/profile/update" method="POST")
+        form(action="/profile/update" method="POST" enctype="multipart/form-data")
           .form-row
             .form-group
               label(for="name") Username
@@ -210,9 +210,9 @@ html(lang="en")
             textarea(id="bio" name="bio" maxlength="200" placeholder="Tell us about yourself...")= user.bio
             .hint= (user.bio ? user.bio.length : 0) + "/200"
           .form-group
-            label(for="photo") Profile Photo URL
-            input(type="url" id="photo" name="photo" value=user.photo placeholder="https://example.com/photo.jpg")
-            .hint Leave as default or paste an image URL
+            label(for="photo") Profile Photo
+            input(type="file" id="photo" name="photo" accept="image/*")
+            .hint Upload an image (jpeg, jpg, png, gif, webp) or leave empty to keep current
           .actions
             button(type="submit").save-btn Save Changes
       .section

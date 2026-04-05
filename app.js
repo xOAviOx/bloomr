@@ -1,5 +1,7 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const multer = require("multer");
+const path = require("path");
 const userRouter = require("./routes/userRoutes");
 const postRouter = require("./routes/postRoutes");
 const AppError = require("./utils/appError");
@@ -15,6 +17,30 @@ app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ limit: "10kb", extended: true }));
 app.use(cookieParser());
 app.use(express.static("public"));
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
+
+// Multer config for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, "public/uploads"));
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowed = /jpeg|jpg|png|gif|webp/;
+    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
+    const mime = allowed.test(file.mimetype);
+    if (ext && mime) cb(null, true);
+    else cb(new Error("Only image files (jpeg, jpg, png, gif, webp) are allowed"));
+  },
+});
 
 app.use("/api/v1/users/", userRouter);
 app.use("/api/v1/posts/", postRouter);
@@ -267,8 +293,8 @@ app.get("/profile", protect, async (req, res) => {
   res.render("profile", { error: null, success: null });
 });
 
-// Update profile handler
-app.post("/profile/update", protect, async (req, res) => {
+// Update profile handler (handles both text fields and file upload)
+app.post("/profile/update", protect, upload.single("photo"), async (req, res) => {
   try {
     const User = require("./models/userModel");
     const updates = {};
@@ -276,7 +302,8 @@ app.post("/profile/update", protect, async (req, res) => {
     if (req.body.name) updates.name = req.body.name;
     if (req.body.email) updates.email = req.body.email;
     if (req.body.bio !== undefined) updates.bio = req.body.bio;
-    if (req.body.photo) updates.photo = req.body.photo;
+    if (req.file) updates.photo = `/uploads/${req.file.filename}`;
+    else if (req.body.photo) updates.photo = req.body.photo;
 
     await User.findByIdAndUpdate(res.locals.user._id, updates, { new: true, runValidators: true });
 
