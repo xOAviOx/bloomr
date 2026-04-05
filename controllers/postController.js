@@ -61,7 +61,7 @@ exports.createPost = catchAsync(async (req, res, next) => {
   }
 
   const postData = {
-    userID: req.user.id,
+    userID: req.user._id,
     content: req.body.content,
   };
 
@@ -104,7 +104,7 @@ exports.deletePost = catchAsync(async (req, res, next) => {
   }
 
   // Check if user owns the post
-  if (post.userID.toString() !== req.user.id) {
+  if (post.userID.toString() !== req.user._id.toString()) {
     return next(new AppError("You can only delete your own posts", 403));
   }
 
@@ -124,12 +124,12 @@ exports.likePost = catchAsync(async (req, res, next) => {
     return next(new AppError("No post found with that ID", 404));
   }
 
-  const userId = req.user.id;
+  const userId = req.user._id;
 
   // Toggle like: remove if already liked, add if not
-  const likeIndex = post.likes.indexOf(userId);
-  if (likeIndex > -1) {
-    post.likes.splice(likeIndex, 1);
+  const isLiked = post.likes.some((id) => id.equals(userId));
+  if (isLiked) {
+    post.likes = post.likes.filter((id) => !id.equals(userId));
   } else {
     post.likes.push(userId);
   }
@@ -141,7 +141,7 @@ exports.likePost = catchAsync(async (req, res, next) => {
     data: {
       likes: post.likes,
       likeCount: post.likes.length,
-      isLiked: likeIndex === -1, // true if just liked, false if just unliked
+      isLiked: !isLiked, // true if just liked, false if just unliked
     },
   });
 });
@@ -155,7 +155,7 @@ exports.addComment = catchAsync(async (req, res, next) => {
   }
 
   const comment = {
-    userID: req.user.id,
+    userID: req.user._id,
     content: req.body.content,
   };
 
@@ -191,7 +191,7 @@ exports.deleteComment = catchAsync(async (req, res, next) => {
   }
 
   // Check if user owns the comment
-  if (comment.userID.toString() !== req.user.id) {
+  if (comment.userID.toString() !== req.user._id.toString()) {
     return next(new AppError("You can only delete your own comments", 403));
   }
 
