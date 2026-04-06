@@ -47,6 +47,8 @@ const userSchema = new mongoose.Schema(
       maxLength: [200, "Bio cannot exceed 200 characters"],
       default: "",
     },
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
     passwordChangedAt: Date,
   },

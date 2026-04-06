@@ -57,6 +57,84 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
+exports.followUser = catchAsync(async (req, res, next) => {
+  const userToFollow = await User.findById(req.params.id);
+  const currentUser = await User.findById(req.user.id);
+
+  if (!userToFollow) {
+    return next(new AppError("User not found", 404));
+  }
+  if (userToFollow._id.equals(currentUser._id)) {
+    return next(new AppError("You cannot follow yourself", 400));
+  }
+  if (currentUser.following.includes(userToFollow._id)) {
+    return next(new AppError("You already follow this user", 400));
+  }
+
+  currentUser.following.push(userToFollow._id);
+  await currentUser.save();
+
+  userToFollow.followers.push(currentUser._id);
+  await userToFollow.save();
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      followingCount: currentUser.following.length,
+      followersCount: userToFollow.followers.length,
+    },
+  });
+});
+
+exports.unfollowUser = catchAsync(async (req, res, next) => {
+  const userToUnfollow = await User.findById(req.params.id);
+  const currentUser = await User.findById(req.user.id);
+
+  if (!userToUnfollow) {
+    return next(new AppError("User not found", 404));
+  }
+  if (!currentUser.following.includes(userToUnfollow._id)) {
+    return next(new AppError("You do not follow this user", 400));
+  }
+
+  currentUser.following = currentUser.following.filter(
+    (id) => !id.equals(userToUnfollow._id)
+  );
+  await currentUser.save();
+
+  userToUnfollow.followers = userToUnfollow.followers.filter(
+    (id) => !id.equals(currentUser._id)
+  );
+  await userToUnfollow.save();
+
+  res.status(200).json({
+    status: "success",
+    message: "Unfollowed successfully",
+  });
+});
+
+exports.getFollowers = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.params.id).populate("followers", "name photo");
+  if (!user) {
+    return next(new AppError("User not found", 404));
+  }
+  res.status(200).json({
+    status: "success",
+    data: { followers: user.followers },
+  });
+});
+
+exports.getFollowing = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.params.id).populate("following", "name photo");
+  if (!user) {
+    return next(new AppError("User not found", 404));
+  }
+  res.status(200).json({
+    status: "success",
+    data: { following: user.following },
+  });
+});
+
 exports.updateMe = catchAsync(async (req, res, next) => {
   // Create error if user POSTs password data
   if (req.body.password || req.body.passwordConfirm) {
