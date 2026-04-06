@@ -241,25 +241,33 @@ html(lang="en")
 
       // Initialize socket connection
       function initSocket() {
-        socket = io('', {
-          auth: { token: getCookie('jwt') }
-        });
+        try {
+          socket = io({
+            auth: { token: getCookie('jwt') }
+          });
 
-        socket.on('connect', () => {
-          console.log('Socket connected');
-        });
+          socket.on('connect', () => {
+            console.log('Socket connected');
+          });
 
-        socket.on('new_message', (message) => {
-          if (currentChatUser && message.sender._id === currentChatUser._id) {
-            appendMessage(message, 'received');
-            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
-          }
-          loadConversations();
-        });
+          socket.on('connect_error', (err) => {
+            console.error('Socket connection error:', err.message);
+          });
 
-        socket.on('messages_read', () => {
-          loadConversations();
-        });
+          socket.on('new_message', (message) => {
+            if (currentChatUser && message.sender._id === currentChatUser._id) {
+              appendMessage(message, 'received');
+              document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+            }
+            loadConversations();
+          });
+
+          socket.on('messages_read', () => {
+            loadConversations();
+          });
+        } catch (err) {
+          console.error('Socket init failed:', err);
+        }
       }
 
       function getCookie(name) {
@@ -356,11 +364,27 @@ html(lang="en")
 
       async function sendMessage() {
         const input = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
         const content = input.value.trim();
-        if (!content || !currentChatUser) return;
+        if (!content) return;
+        if (!currentChatUser) {
+          alert('Please select a conversation first');
+          return;
+        }
 
-        socket.emit('send_message', { recipientId: currentChatUser._id, content });
+        // Optimistically add message to UI
+        const tempDiv = document.getElementById('chatMessages');
+        const div = document.createElement('div');
+        div.className = 'message sent';
+        div.innerHTML = `${escapeHtml(content)}<span class="time">Just now</span>`;
+        tempDiv.appendChild(div);
+        tempDiv.scrollTop = tempDiv.scrollHeight;
         input.value = '';
+        sendBtn.disabled = true;
+
+        // Send via socket
+        socket.emit('send_message', { recipientId: currentChatUser._id, content });
+        sendBtn.disabled = false;
       }
 
       function escapeHtml(text) {
