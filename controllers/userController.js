@@ -67,21 +67,21 @@ exports.followUser = catchAsync(async (req, res, next) => {
   if (userToFollow._id.equals(currentUser._id)) {
     return next(new AppError("You cannot follow yourself", 400));
   }
-  if (currentUser.following.includes(userToFollow._id)) {
+  if (currentUser.following.some((id) => id.equals(userToFollow._id))) {
     return next(new AppError("You already follow this user", 400));
   }
 
   currentUser.following.push(userToFollow._id);
-  await currentUser.save();
+  await User.findByIdAndUpdate(currentUser._id, { following: currentUser.following });
 
   userToFollow.followers.push(currentUser._id);
-  await userToFollow.save();
+  await User.findByIdAndUpdate(userToFollow._id, { followers: userToFollow.followers });
 
   res.status(200).json({
     status: "success",
     data: {
       followingCount: currentUser.following.length,
-      followersCount: userToFollow.followers.length,
+      followersCount: userToFollow.followers.length + 1,
     },
   });
 });
@@ -93,19 +93,19 @@ exports.unfollowUser = catchAsync(async (req, res, next) => {
   if (!userToUnfollow) {
     return next(new AppError("User not found", 404));
   }
-  if (!currentUser.following.includes(userToUnfollow._id)) {
+  if (!currentUser.following.some((id) => id.equals(userToUnfollow._id))) {
     return next(new AppError("You do not follow this user", 400));
   }
 
   currentUser.following = currentUser.following.filter(
     (id) => !id.equals(userToUnfollow._id)
   );
-  await currentUser.save();
+  await User.findByIdAndUpdate(currentUser._id, { following: currentUser.following });
 
   userToUnfollow.followers = userToUnfollow.followers.filter(
     (id) => !id.equals(currentUser._id)
   );
-  await userToUnfollow.save();
+  await User.findByIdAndUpdate(userToUnfollow._id, { followers: userToUnfollow.followers });
 
   res.status(200).json({
     status: "success",
