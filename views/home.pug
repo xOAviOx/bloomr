@@ -377,10 +377,11 @@ html(lang="en")
         each post in posts
           .post-card
             .post-header
-              .avatar= post.userID ? post.userID.name.charAt(0).toUpperCase() : '?'
-              .user-info
-                h3= post.userID ? post.userID.name : 'Unknown'
-                span= new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+              a(href=`/user/${post.userID._id}` style="text-decoration: none; color: inherit; display: contents;")
+                .avatar= post.userID ? post.userID.name.charAt(0).toUpperCase() : '?'
+                .user-info
+                  h3= post.userID ? post.userID.name : 'Unknown'
+                  span= new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
             .post-content= Array.isArray(post.content) ? post.content.join(' ') : post.content
             .post-actions
               button.action-btn.like-btn(data-post-id=post._id) ♥ #{post.likes ? post.likes.length : 0}
@@ -392,9 +393,11 @@ html(lang="en")
               .comment-list
                 each comment in (post.comments || [])
                   .comment-item
-                    .avatar= comment.userID ? (comment.userID.name ? comment.userID.name.charAt(0).toUpperCase() : '?') : '?'
+                    a(href=`/user/${comment.userID._id}` style="text-decoration: none; color: inherit; display: contents;")
+                      .avatar= comment.userID ? (comment.userID.name ? comment.userID.name.charAt(0).toUpperCase() : '?') : '?'
                     .comment-body
-                      .comment-user= comment.userID ? (comment.userID.name || 'Unknown') : 'Unknown'
+                      a(href=`/user/${comment.userID._id}` style="text-decoration: none; color: inherit;")
+                        .comment-user= comment.userID ? (comment.userID.name || 'Unknown') : 'Unknown'
                       .comment-text= comment.content
       else
         .empty-state

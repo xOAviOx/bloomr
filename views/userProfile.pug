@@ -1,0 +1,319 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title #{user.name} | Bloomr
+    link(rel="preconnect" href="https://fonts.googleapis.com")
+    link(rel="preconnect" href="https://fonts.gstatic.com" crossorigin)
+    link(href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet")
+    style.
+      :root {
+        --bg-primary: #0a0a0a;
+        --bg-secondary: #141414;
+        --bg-tertiary: #1a1a1a;
+        --text-primary: #f5f5f5;
+        --text-secondary: #888888;
+        --text-muted: #555555;
+        --accent: #e63946;
+        --accent-hover: #ff4d5a;
+        --border: #2a2a2a;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: 'Sora', sans-serif;
+        background: var(--bg-primary);
+        min-height: 100vh;
+        color: var(--text-primary);
+      }
+      .background {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 0;
+        background: radial-gradient(ellipse at 20% 20%, rgba(230, 57, 70, 0.06) 0%, transparent 50%),
+                    radial-gradient(ellipse at 80% 80%, rgba(230, 57, 70, 0.04) 0%, transparent 50%);
+      }
+      .header {
+        position: fixed; top: 0; left: 0; right: 0;
+        background: rgba(10, 10, 10, 0.9);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border);
+        padding: 16px 24px;
+        z-index: 100;
+        display: flex; justify-content: space-between; align-items: center;
+      }
+      .logo {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 24px; font-weight: 700;
+        background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .nav { display: flex; gap: 24px; align-items: center; }
+      .nav a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 14px; font-weight: 500;
+        transition: color 0.3s ease;
+      }
+      .nav a:hover, .nav a.active { color: var(--accent); }
+      .logout-btn {
+        padding: 8px 16px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 13px;
+        transition: all 0.3s ease;
+      }
+      .logout-btn:hover { background: var(--accent); border-color: var(--accent); color: white; }
+      .container {
+        position: relative; z-index: 1;
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 100px 20px 40px;
+      }
+      .profile-header {
+        display: flex; gap: 32px; align-items: center;
+        margin-bottom: 40px;
+      }
+      .avatar-wrapper { position: relative; }
+      .avatar {
+        width: 120px; height: 120px;
+        border-radius: 50%;
+        background: var(--bg-tertiary);
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 40px;
+        color: var(--accent);
+        overflow: hidden;
+        border: 3px solid var(--border);
+      }
+      .avatar img { width: 100%; height: 100%; object-fit: cover; }
+      .user-info { flex: 1; }
+      .user-info h1 { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+      .user-info p { color: var(--text-secondary); font-size: 14px; margin-bottom: 8px; }
+      .user-info .bio-text { color: var(--text-secondary); font-size: 14px; line-height: 1.5; margin-bottom: 12px; }
+      .user-info .joined { font-size: 12px; color: var(--text-muted); }
+      .stats { display: flex; gap: 32px; margin-bottom: 16px; }
+      .stat { text-align: center; cursor: pointer; transition: color 0.3s ease; }
+      .stat:hover { color: var(--accent); }
+      .stat .num { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; }
+      .stat .label { font-size: 12px; color: var(--text-muted); }
+      .follow-btn {
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-family: 'Sora', sans-serif;
+        font-size: 14px; font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+      }
+      .follow-btn.follow {
+        background: var(--accent);
+        color: white;
+      }
+      .follow-btn.follow:hover { background: var(--accent-hover); }
+      .follow-btn.unfollow {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+      }
+      .follow-btn.unfollow:hover { background: var(--border); }
+      .section {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 28px;
+        margin-bottom: 24px;
+      }
+      .section h2 { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+      .post-card {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+      .post-content { font-size: 15px; line-height: 1.6; margin-bottom: 12px; }
+      .post-meta { font-size: 12px; color: var(--text-muted); }
+      .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
+      .back-btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 8px 16px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 13px;
+        margin-bottom: 24px;
+        transition: all 0.3s ease;
+      }
+      .back-btn:hover { background: var(--border); color: var(--text-primary); }
+      .message {
+        padding: 14px 16px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 14px;
+      }
+      .message.success { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e; }
+      .message.error { background: rgba(230, 57, 70, 0.1); border: 1px solid rgba(230, 57, 70, 0.3); color: var(--accent); }
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 200;
+        align-items: center; justify-content: center;
+      }
+      .modal-overlay.active { display: flex; }
+      .modal {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 32px;
+        width: 100%;
+        max-width: 500px;
+        margin: 20px;
+      }
+      .modal h2 { font-family: 'Space Grotesk', sans-serif; font-size: 20px; margin-bottom: 24px; }
+      .modal-list { max-height: 300px; overflow-y: auto; }
+      .modal-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+      .modal-item:last-child { border-bottom: none; }
+      .modal-item .avatar { width: 40px; height: 40px; font-size: 14px; border-radius: 50%; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center; font-weight: 600; color: var(--accent); overflow: hidden; }
+      .modal-item .avatar img { width: 100%; height: 100%; object-fit: cover; }
+      .modal-item .info { flex: 1; }
+      .modal-item .info h4 { font-size: 14px; font-weight: 600; }
+      .modal-item .info a { text-decoration: none; color: inherit; }
+      .modal-item .info span { font-size: 12px; color: var(--text-muted); }
+      .modal-close {
+        display: block; width: 100%; margin-top: 16px;
+        padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border);
+        border-radius: 10px; color: var(--text-secondary); font-family: 'Sora', sans-serif;
+        font-size: 14px; cursor: pointer; text-align: center;
+      }
+      .modal-close:hover { background: var(--border); }
+  body
+    .background
+    .header
+      .logo Bloomr
+      .nav
+        a(href="/home") Home
+        a(href="/internships") Internships
+        a(href="/profile") Profile
+        a.logout-btn(href="/logout") Logout
+    .container
+      a.back-btn(href="/home") ← Back to Feed
+      .profile-header
+        .avatar-wrapper
+          .avatar
+            if user.photo && user.photo !== "default.jpg"
+              img(src=user.photo alt=user.name)
+            else
+              = user.name ? user.name.charAt(0).toUpperCase() : '?'
+        .user-info
+          h1= user.name
+            if isOwnProfile
+              span(style="font-size: 14px; font-weight: 400; color: var(--text-muted);") (you)
+          if user.bio && user.bio !== ""
+            p.bio-text= user.bio
+          .stats
+            .stat(id="followers-stat" data-count=user.followers ? user.followers.length : 0)
+              .num= user.followers ? user.followers.length : 0
+              .label Followers
+            .stat(id="following-stat" data-count=user.following ? user.following.length : 0)
+              .num= user.following ? user.following.length : 0
+              .label Following
+          if !isOwnProfile
+            button.follow-btn.follow(id="followBtn" data-user-id=user._id) Follow
+          .joined Joined #{new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+      if locals.error
+        .message.error= error
+      .section
+        h2 Posts by #{user.name}
+        if posts && posts.length > 0
+          each post in posts
+            .post-card
+              .post-content= Array.isArray(post.content) ? post.content.join(' ') : post.content
+              .post-meta= new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        else
+          .empty-state No posts yet.
+    #followers-modal.modal-overlay
+      .modal
+        h2 Followers
+        .modal-list#followers-list
+        button.modal-close(type="button" onclick="document.getElementById('followers-modal').classList.remove('active')") Close
+    #following-modal.modal-overlay
+      .modal
+        h2 Following
+        .modal-list#following-list
+        button.modal-close(type="button" onclick="document.getElementById('following-modal').classList.remove('active')") Close
+    script.
+      // Make stats clickable to open modals
+      document.getElementById('followers-stat').addEventListener('click', () => loadList('followers', '/api/v1/users/#{user._id}/followers', 'followers'));
+      document.getElementById('following-stat').addEventListener('click', () => loadList('following', '/api/v1/users/#{user._id}/following', 'following'));
+
+      async function loadList(type, url, modalId) {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.status !== 'success') return;
+          const list = document.getElementById(`${type}-list`);
+          list.innerHTML = '';
+          data.data[type].forEach(u => {
+            list.innerHTML += `
+              <div class="modal-item">
+                <div class="avatar">${u.photo && u.photo !== 'default.jpg' ? `<img src="${u.photo}" alt="${u.name}">` : u.name.charAt(0).toUpperCase()}</div>
+                <div class="info">
+                  <h4><a href="/user/${u._id}">${u.name}</a></h4>
+                </div>
+              </div>
+            `;
+          });
+          if (data.data[type].length === 0) {
+            list.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">No users yet.</p>';
+          }
+          document.getElementById(`${modalId}-modal`).classList.add('active');
+        } catch (err) {
+          console.error('Failed to load list:', err);
+        }
+      }
+
+      // Follow/unfollow button
+      const followBtn = document.getElementById('followBtn');
+      if (followBtn) {
+        followBtn.addEventListener('click', async () => {
+          const userId = followBtn.dataset.userId;
+          const isFollowing = followBtn.classList.contains('unfollow');
+          const endpoint = isFollowing ? `/api/v1/users/${userId}/follow` : `/api/v1/users/${userId}/follow`;
+          const method = isFollowing ? 'DELETE' : 'POST';
+          try {
+            const res = await fetch(endpoint, {
+              method,
+              headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+              // Update button
+              if (isFollowing) {
+                followBtn.textContent = 'Follow';
+                followBtn.classList.remove('unfollow');
+                followBtn.classList.add('follow');
+              } else {
+                followBtn.textContent = 'Following';
+                followBtn.classList.remove('follow');
+                followBtn.classList.add('unfollow');
+              }
+              // Update counts
+              if (data.data.followingCount !== undefined) {
+                document.querySelector('#followers-stat .num').textContent = data.data.followersCount;
+              }
+            } else {
+              alert(data.message || 'Something went wrong');
+            }
+          } catch (err) {
+            console.error('Follow action failed:', err);
+          }
+        });
+      }

@@ -295,6 +295,22 @@ app.get("/profile", protect, async (req, res) => {
   res.render("profile", { error: null, success: null });
 });
 
+// User profile route (anyone's profile)
+app.get("/user/:id", protect, async (req, res) => {
+  const User = require("./models/userModel");
+  const Post = require("./models/postModel");
+  const targetUser = await User.findById(req.params.id);
+  if (!targetUser) return res.redirect("/home");
+
+  const posts = await Post.find({ userID: targetUser._id })
+    .sort({ createdAt: -1 })
+    .limit(50);
+
+  const isOwnProfile = res.locals.user._id.equals(targetUser._id);
+
+  res.render("userProfile", { user: targetUser, posts, isOwnProfile });
+});
+
 // Update profile handler (handles both text fields and file upload)
 app.post("/profile/update", protect, upload.single("photo"), async (req, res) => {
   try {
