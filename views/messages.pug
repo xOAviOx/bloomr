@@ -69,6 +69,39 @@ html(lang="en")
         transition: all 0.3s ease;
       }
       .logout-btn:hover { background: var(--accent); border-color: var(--accent); color: white; }
+      .notification-bell {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 18px;
+        text-decoration: none;
+      }
+      .notification-bell:hover { background: var(--accent); border-color: var(--accent); }
+      .notification-bell .badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        background: var(--accent);
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+      }
+      .notification-bell .badge.hidden { display: none; }
       .messages-container {
         position: relative; z-index: 1;
         display: flex;
@@ -219,6 +252,9 @@ html(lang="en")
         a(href="/internships") Internships
         a(href="/messages" class="active") Messages
         a(href="/profile") Profile
+        a.notification-bell(id="navNotificationBell" href="/notifications")
+          | 🔔
+          .badge(id="navBadge" class=(unreadCount === 0 ? "hidden" : ""))= unreadCount > 99 ? '99+' : unreadCount
         a.logout-btn(href="/logout") Logout
     .messages-container
       .conversations-list
@@ -269,6 +305,18 @@ html(lang="en")
 
           socket.on('messages_read', () => {
             loadConversations();
+          });
+
+          socket.on('notification', (data) => {
+            const badge = document.getElementById('navBadge');
+            if (badge) {
+              let count = parseInt(badge.textContent) || 0;
+              if (badge.classList.contains('hidden')) count = 0;
+              count++;
+              badge.textContent = count > 99 ? '99+' : count;
+              badge.classList.remove('hidden');
+            }
+            showNotificationToast(data);
           });
         } catch (err) {
           console.error('Socket init failed:', err);
@@ -397,6 +445,21 @@ html(lang="en")
         div.textContent = text;
         return div.innerHTML;
       }
+
+      function showNotificationToast(data) {
+        const toast = document.createElement('div');
+        toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;padding:16px 20px;z-index:1000;display:flex;align-items:center;gap:12px;animation:slideIn 0.3s ease;cursor:pointer;max-width:320px;';
+        const icon = data.type === 'like' ? '♥' : '💬';
+        const action = data.type === 'like' ? 'liked your post' : 'commented on your post';
+        toast.innerHTML = `<span style="font-size:20px;">${icon}</span><div><div style="font-size:13px;font-weight:600;">${escapeHtml(data.sender.name)}</div><div style="font-size:12px;color:var(--text-secondary);">${action}</div></div>`;
+        toast.onclick = () => window.location.href = '/notifications';
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.animation = 'slideOut 0.3s ease'; setTimeout(() => toast.remove(), 300); }, 5000);
+      }
+
+      const animStyle = document.createElement('style');
+      animStyle.textContent = '@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}@keyframes slideOut{from{transform:translateX(0);opacity:1}to{transform:translateX(100%);opacity:0}}';
+      document.head.appendChild(animStyle);
 
       initSocket();
       loadConversations();

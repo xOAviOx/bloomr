@@ -6,6 +6,7 @@ const userRouter = require("./routes/userRoutes");
 const postRouter = require("./routes/postRoutes");
 const chatbotRouter = require("./routes/chatbotRoutes");
 const messageRouter = require("./routes/messageRoutes");
+const notificationRouter = require("./routes/notificationRoutes");
 const AppError = require("./utils/appError");
 
 const app = express();
@@ -48,6 +49,7 @@ app.use("/api/v1/users/", userRouter);
 app.use("/api/v1/posts/", postRouter);
 app.use("/api/v1/chatbot/", chatbotRouter);
 app.use("/api/v1/messages/", messageRouter);
+app.use("/api/v1/notifications/", notificationRouter);
 
 // Middleware to handle form auth responses
 const handleAuthResponse = (req, res, next) => {
@@ -89,6 +91,24 @@ const protect = async (req, res, next) => {
   } catch (err) {
     return res.redirect("/login");
   }
+};
+
+// Middleware to load notification unread count for all protected views
+const loadNotificationCount = async (req, res, next) => {
+  if (res.locals.user) {
+    try {
+      const Notification = require("./models/notificationModel");
+      const unreadCount = await Notification.countDocuments({
+        recipient: res.locals.user._id,
+        read: false,
+      });
+      res.locals.unreadCount = unreadCount;
+    } catch (err) {
+      console.error("Failed to load notification count:", err);
+      res.locals.unreadCount = 0;
+    }
+  }
+  next();
 };
 
 // View routes - Signup (protected - redirect if already logged in)
@@ -250,7 +270,7 @@ const sampleInternships = [
 ];
 
 // Internships route (protected)
-app.get("/internships", protect, async (req, res) => {
+app.get("/internships", protect, loadNotificationCount, async (req, res) => {
   // TODO: Replace with real API call when you have an API key
   // Example with InternSignal API:
   // const response = await fetch('https://internsignal.com/api/v1/internships', {
@@ -261,7 +281,7 @@ app.get("/internships", protect, async (req, res) => {
 });
 
 // Home route (protected) - shows all posts/feed
-app.get("/home", protect, async (req, res, next) => {
+app.get("/home", protect, loadNotificationCount, async (req, res, next) => {
   const Post = require("./models/postModel");
 
   // Fetch all posts, newest first, populate user info
@@ -293,17 +313,17 @@ app.post("/create-post", protect, async (req, res, next) => {
 });
 
 // Profile route (protected)
-app.get("/profile", protect, async (req, res) => {
+app.get("/profile", protect, loadNotificationCount, async (req, res) => {
   res.render("profile", { error: null, success: null });
 });
 
 // Messages route
-app.get("/messages", protect, async (req, res) => {
+app.get("/messages", protect, loadNotificationCount, async (req, res) => {
   res.render("messages", { preSelectedChat: req.query.chat || null });
 });
 
 // User profile route (anyone's profile)
-app.get("/user/:id", protect, async (req, res) => {
+app.get("/user/:id", protect, loadNotificationCount, async (req, res) => {
   const User = require("./models/userModel");
   const Post = require("./models/postModel");
   const targetUser = await User.findById(req.params.id);
@@ -374,6 +394,19 @@ app.post("/profile/delete", protect, async (req, res) => {
   } catch (err) {
     res.render("profile", { error: err.message, success: null });
   }
+});
+
+// Notifications page (protected)
+app.get("/notifications", protect, loadNotificationCount, async (req, res) => {
+  const Notification = require("./models/notificationModel");
+
+  const notifications = await Notification.find({ recipient: req.user._id })
+    .sort({ createdAt: -1 })
+    .limit(50)
+    .populate("sender", "name photo")
+    .populate("post", "content imageUrl");
+
+  res.render("notifications", { notifications, unreadCount: res.locals.unreadCount });
 });
 
 // Logout route

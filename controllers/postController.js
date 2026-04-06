@@ -1,6 +1,8 @@
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const Post = require("./../models/postModel");
+const Notification = require("./../models/notificationModel");
+const { getIO } = require("./../socket");
 
 const multer = require("multer");
 const sharp = require("sharp");
@@ -136,6 +138,30 @@ exports.likePost = catchAsync(async (req, res, next) => {
 
   await post.save();
 
+  // Create notification only when liking (not unliking) and not self-like
+  if (!isLiked && userId.toString() !== post.userID.toString()) {
+    const notification = await Notification.create({
+      recipient: post.userID,
+      sender: userId,
+      type: "like",
+      post: post._id,
+    });
+    await notification.populate("sender", "name photo");
+    await notification.populate("post", "content imageUrl");
+
+    const io = getIO();
+    if (io) {
+      io.to(post.userID.toString()).emit("notification", {
+        _id: notification._id,
+        sender: notification.sender,
+        type: "like",
+        post: { _id: post._id },
+        read: false,
+        createdAt: notification.createdAt,
+      });
+    }
+  }
+
   res.status(200).json({
     status: "success",
     data: {
@@ -161,6 +187,32 @@ exports.addComment = catchAsync(async (req, res, next) => {
 
   post.comments.push(comment);
   await post.save();
+
+  // Create notification only if not self-comment
+  if (req.user._id.toString() !== post.userID.toString()) {
+    const notification = await Notification.create({
+      recipient: post.userID,
+      sender: req.user._id,
+      type: "comment",
+      post: post._id,
+      commentContent: req.body.content,
+    });
+    await notification.populate("sender", "name photo");
+    await notification.populate("post", "content imageUrl");
+
+    const io = getIO();
+    if (io) {
+      io.to(post.userID.toString()).emit("notification", {
+        _id: notification._id,
+        sender: notification.sender,
+        type: "comment",
+        post: { _id: post._id },
+        commentContent: req.body.content,
+        read: false,
+        createdAt: notification.createdAt,
+      });
+    }
+  }
 
   // Populate the new comment's user info
   const populatedPost = await Post.findById(req.params.id)
