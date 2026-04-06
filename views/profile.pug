@@ -93,6 +93,11 @@ html(lang="en")
       .user-info h1 { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 600; margin-bottom: 4px; }
       .user-info p { color: var(--text-secondary); font-size: 14px; }
       .user-info .joined { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+      .stats { display: flex; gap: 32px; margin: 16px 0; }
+      .stat { text-align: center; cursor: pointer; transition: color 0.3s ease; }
+      .stat:hover { color: var(--accent); }
+      .stat .num { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; }
+      .stat .label { font-size: 12px; color: var(--text-muted); }
       .section {
         background: var(--bg-secondary);
         border: 1px solid var(--border);
@@ -170,6 +175,40 @@ html(lang="en")
       }
       .message.success { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e; }
       .message.error { background: rgba(230, 57, 70, 0.1); border: 1px solid rgba(230, 57, 70, 0.3); color: var(--accent); }
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 200;
+        align-items: center; justify-content: center;
+      }
+      .modal-overlay.active { display: flex; }
+      .modal {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 32px;
+        width: 100%;
+        max-width: 500px;
+        margin: 20px;
+      }
+      .modal h2 { font-family: 'Space Grotesk', sans-serif; font-size: 20px; margin-bottom: 24px; }
+      .modal-list { max-height: 300px; overflow-y: auto; }
+      .modal-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+      .modal-item:last-child { border-bottom: none; }
+      .modal-item .avatar { width: 40px; height: 40px; font-size: 14px; border-radius: 50%; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center; font-weight: 600; color: var(--accent); overflow: hidden; flex-shrink: 0; }
+      .modal-item .avatar img { width: 100%; height: 100%; object-fit: cover; }
+      .modal-item .info { flex: 1; }
+      .modal-item .info a { text-decoration: none; color: inherit; display: block; }
+      .modal-item .info h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+      .modal-close {
+        display: block; width: 100%; margin-top: 16px;
+        padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border);
+        border-radius: 10px; color: var(--text-secondary); font-family: 'Sora', sans-serif;
+        font-size: 14px; cursor: pointer; text-align: center;
+      }
+      .modal-close:hover { background: var(--border); }
   body
     .background
     .header
@@ -191,6 +230,13 @@ html(lang="en")
           h1= user.name
           p= user.email
           .joined Joined #{new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          .stats
+            .stat(id="profile-followers-stat")
+              .num= user.followers ? user.followers.length : 0
+              .label Followers
+            .stat(id="profile-following-stat")
+              .num= user.following ? user.following.length : 0
+              .label Following
       if locals.success
         .message.success= success
       if locals.error
@@ -235,3 +281,42 @@ html(lang="en")
         .actions
           button.delete-btn(onclick="if(confirm('Are you sure? This cannot be undone.')) document.getElementById('deleteForm').submit();") Delete Account
           form(id="deleteForm" action="/profile/delete" method="POST" style="display:none")
+    #followers-modal.modal-overlay
+      .modal
+        h2 Followers
+        .modal-list#followers-list
+        button.modal-close(type="button" onclick="document.getElementById('followers-modal').classList.remove('active')") Close
+    #following-modal.modal-overlay
+      .modal
+        h2 Following
+        .modal-list#following-list
+        button.modal-close(type="button" onclick="document.getElementById('following-modal').classList.remove('active')") Close
+    script.
+      document.getElementById('profile-followers-stat').addEventListener('click', () => loadList('followers', '/api/v1/users/#{user._id}/followers'));
+      document.getElementById('profile-following-stat').addEventListener('click', () => loadList('following', '/api/v1/users/#{user._id}/following'));
+
+      async function loadList(type, url) {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.status !== 'success') return;
+          const list = document.getElementById(`${type}-list`);
+          list.innerHTML = '';
+          data.data[type].forEach(u => {
+            list.innerHTML += `
+              <div class="modal-item">
+                <div class="avatar">${u.photo && u.photo !== 'default.jpg' ? `<img src="${u.photo}" alt="${u.name}">` : u.name.charAt(0).toUpperCase()}</div>
+                <div class="info">
+                  <a href="/user/${u._id}"><h4>${u.name}</h4></a>
+                </div>
+              </div>
+            `;
+          });
+          if (data.data[type].length === 0) {
+            list.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">No users yet.</p>';
+          }
+          document.getElementById(`${type}-modal`).classList.add('active');
+        } catch (err) {
+          console.error('Failed to load list:', err);
+        }
+      }
