@@ -8,6 +8,7 @@ router.post("/login", authController.login);
 router.get("/logout", authController.logout);
 
 router.route("/").get(userController.getAllUsers);
+router.get("/:id", userController.getUser);
 router.patch(
   "/update-me",
   authController.protect,

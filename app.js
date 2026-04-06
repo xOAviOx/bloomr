@@ -299,7 +299,7 @@ app.get("/profile", protect, async (req, res) => {
 
 // Messages route
 app.get("/messages", protect, async (req, res) => {
-  res.render("messages");
+  res.render("messages", { preSelectedChat: req.query.chat || null });
 });
 
 // User profile route (anyone's profile)

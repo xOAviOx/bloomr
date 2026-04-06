@@ -238,6 +238,7 @@ html(lang="en")
       let socket;
       let currentChatUser = null;
       let conversations = [];
+      const preSelectedChat = '!{preSelectedChat ? preSelectedChat : "null"}';
 
       // Initialize socket connection
       function initSocket() {
@@ -248,6 +249,10 @@ html(lang="en")
 
           socket.on('connect', () => {
             console.log('Socket connected');
+            // Auto-open chat if pre-selected
+            if (preSelectedChat && preSelectedChat !== 'null') {
+              setTimeout(() => resolvePreSelectedChat(preSelectedChat), 500);
+            }
           });
 
           socket.on('connect_error', (err) => {
@@ -395,3 +400,21 @@ html(lang="en")
 
       initSocket();
       loadConversations();
+
+      async function resolvePreSelectedChat(userId) {
+        try {
+          const res = await fetch(`/api/v1/users/${userId}`);
+          const data = await res.json();
+          if (data.status === 'success' && data.data && data.data.user) {
+            const u = data.data.user;
+            openChat(u._id, u.name, u.photo || 'default.jpg');
+          }
+        } catch (err) {
+          console.error('Failed to load pre-selected chat user:', err);
+        }
+      }
+
+      // Handle pre-selected chat from URL param
+      if (preSelectedChat && preSelectedChat !== 'null') {
+        resolvePreSelectedChat(preSelectedChat);
+      }
