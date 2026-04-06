@@ -377,8 +377,12 @@ html(lang="en")
         each post in posts
           .post-card
             .post-header
-              a(href=`/user/${post.userID._id}` style="text-decoration: none; color: inherit; display: contents;")
-                .avatar= post.userID ? post.userID.name.charAt(0).toUpperCase() : '?'
+              a(href=`/user/${post.userID._id}` style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 12px;")
+                .avatar
+                  if post.userID && post.userID.photo && post.userID.photo !== "default.jpg"
+                    img(src=post.userID.photo alt=post.userID.name)
+                  else
+                    = post.userID ? post.userID.name.charAt(0).toUpperCase() : '?'
                 .user-info
                   h3= post.userID ? post.userID.name : 'Unknown'
                   span= new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
