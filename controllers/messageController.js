@@ -7,22 +7,25 @@ const User = require("./../models/userModel");
 exports.getConversations = catchAsync(async (req, res, next) => {
   const messages = await Message.find({
     $or: [{ sender: req.user.id }, { recipient: req.user.id }],
-  }).sort({ createdAt: -1 });
+  })
+    .sort({ createdAt: -1 })
+    .populate("sender", "name photo")
+    .populate("recipient", "name photo");
 
   // Build unique conversation list
   const conversationMap = {};
   for (const msg of messages) {
-    const otherId = msg.sender.equals(req.user.id)
+    const otherId = msg.sender._id.equals(req.user.id)
       ? msg.recipient._id.toString()
       : msg.sender._id.toString();
     if (!conversationMap[otherId]) {
       conversationMap[otherId] = {
-        user: msg.sender.equals(req.user.id) ? msg.recipient : msg.sender,
+        user: msg.sender._id.equals(req.user.id) ? msg.recipient : msg.sender,
         lastMessage: msg,
         unread: 0,
       };
     }
-    if (!msg.read && msg.sender.toString() !== req.user.id) {
+    if (!msg.read && msg.sender._id.toString() !== req.user.id) {
       conversationMap[otherId].unread++;
     }
   }
