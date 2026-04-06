@@ -227,6 +227,7 @@ html(lang="en")
               .label Following
           if !isOwnProfile
             button.follow-btn.follow(id="followBtn" data-user-id=user._id) Follow
+            a.follow-btn.follow(href=`/messages?chat=${user._id}` style="text-decoration: none; margin-left: 8px;") Message
           .joined Joined #{new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
       if locals.error
         .message.error= error

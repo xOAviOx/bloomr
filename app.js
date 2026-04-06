@@ -5,6 +5,7 @@ const path = require("path");
 const userRouter = require("./routes/userRoutes");
 const postRouter = require("./routes/postRoutes");
 const chatbotRouter = require("./routes/chatbotRoutes");
+const messageRouter = require("./routes/messageRoutes");
 const AppError = require("./utils/appError");
 
 const app = express();
@@ -46,6 +47,7 @@ const upload = multer({
 app.use("/api/v1/users/", userRouter);
 app.use("/api/v1/posts/", postRouter);
 app.use("/api/v1/chatbot/", chatbotRouter);
+app.use("/api/v1/messages/", messageRouter);
 
 // Middleware to handle form auth responses
 const handleAuthResponse = (req, res, next) => {
@@ -293,6 +295,11 @@ app.post("/create-post", protect, async (req, res, next) => {
 // Profile route (protected)
 app.get("/profile", protect, async (req, res) => {
   res.render("profile", { error: null, success: null });
+});
+
+// Messages route
+app.get("/messages", protect, async (req, res) => {
+  res.render("messages");
 });
 
 // User profile route (anyone's profile)

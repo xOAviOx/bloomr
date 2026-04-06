@@ -1,5 +1,7 @@
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
+const http = require("http");
+const { initSocket } = require("./socket");
 
 process.on("uncaughtException", (err) => {
   console.log("Uncaught Exception! 🔴 Shutting down...");
@@ -25,7 +27,10 @@ mongoose
   });
 
 const port = process.env.PORT || 8000;
-const server = app.listen(port, () => {
+const server = http.createServer(app);
+initSocket(server);
+
+server.listen(port, () => {
   console.log(`App running on port ${port}`);
 });
 
