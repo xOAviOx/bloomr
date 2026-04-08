@@ -132,7 +132,7 @@ async function retrieveRelevantPosts(queryEmbedding, topK = 5) {
   return [...withComments, ...withoutComments].sort((a, b) => b.score - a.score);
 }
 
-// Build a context string from retrieved posts and their comments
+/// Build a context string from retrieved posts and their comments
 function buildContext(posts) {
   if (!posts.length) return "No relevant posts found.";
 
