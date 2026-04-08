@@ -3,7 +3,7 @@ const Post = require("../models/postModel");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Embed a text query using Gemini text-embedding-004
+/// Embed a text query using Gemini text-embedding-004
 async function embedText(text) {
   const model = genAI.getGenerativeModel({ model: "models/gemini-embedding-001" });
   const result = await model.embedContent(text);
