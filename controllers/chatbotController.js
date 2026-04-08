@@ -10,7 +10,7 @@ async function embedText(text) {
   return result.embedding.values;
 }
 
-// Retrieve top-k relevant posts using Atlas Vector Search
+/// Retrieve top-k relevant posts using Atlas Vector Search
 async function retrieveRelevantPosts(queryEmbedding, topK = 5) {
   const docs = await Post.aggregate([
     {
