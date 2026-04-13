@@ -63,7 +63,7 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError("Incorrect email or password", 401));
   }
 
-  // 3) If everything ok, send token to client
+  // 3) If everything ok, send token to client//
   const token = signToken(user._id);
 
   // 4) Set cookie
