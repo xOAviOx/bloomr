@@ -66,7 +66,8 @@ exports.login = catchAsync(async (req, res, next) => {
   // 3) If everything ok, send token to client//
   const token = signToken(user._id);
 
-  // 4) Set cookie
+  // 4) Set cookie//
+  
   const cookieOptions = {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
